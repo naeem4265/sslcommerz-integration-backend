@@ -38,7 +38,7 @@ export class PaymentService {
 
       // Update transaction with payment URL
       transaction.paymentUrl = paymentUrl;
-      await transaction.save();
+      await this.paymentRepository.save(transaction);
 
       return this.toResponseDto(transaction);
     } catch (error) {

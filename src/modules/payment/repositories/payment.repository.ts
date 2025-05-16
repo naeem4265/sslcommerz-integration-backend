@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { PaymentMethod } from '../types/payment-method.enum';
-import { PaymentTransaction, PaymentTransactionDocument } from '../entities/payment-transaction.entity';
+import { PaymentTransaction } from '../entities/payment-transaction.entity';
 
 @Injectable()
 export class PaymentRepository {
@@ -30,8 +30,8 @@ export class PaymentRepository {
   } as const;
 
   constructor(
-    @InjectModel(PaymentTransaction.name)
-    private readonly paymentTransactionModel: Model<PaymentTransactionDocument>,
+    @InjectRepository(PaymentTransaction)
+    private readonly paymentTransactionRepository: Repository<PaymentTransaction>,
   ) {}
 
   async createTransaction(
@@ -42,7 +42,7 @@ export class PaymentRepository {
     const transactionId = this.generateTransactionId();
     const paymentUrl = await this.getPaymentUrl(paymentMethod, transactionId);
 
-    const transaction = new this.paymentTransactionModel({
+    const transaction = this.paymentTransactionRepository.create({
       registrationId,
       transactionId,
       paymentMethod,
@@ -51,11 +51,14 @@ export class PaymentRepository {
       status: 'PENDING',
     });
 
-    return transaction.save();
+    return this.paymentTransactionRepository.save(transaction);
   }
 
   async findTransactionById(transactionId: string): Promise<PaymentTransaction | null> {
-    return this.paymentTransactionModel.findOne({ transactionId }).exec();
+    return this.paymentTransactionRepository.findOne({
+      where: { transactionId },
+      relations: ['registration'],
+    });
   }
 
   async updateTransactionStatus(
@@ -74,7 +77,7 @@ export class PaymentRepository {
       transaction.failureReason = failureReason;
     }
 
-    return transaction.save();
+    return this.paymentTransactionRepository.save(transaction);
   }
 
   private async getPaymentUrl(
@@ -90,5 +93,9 @@ export class PaymentRepository {
 
   private generateTransactionId(): string {
     return `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  async save(transaction: PaymentTransaction): Promise<PaymentTransaction> {
+    return this.paymentTransactionRepository.save(transaction);
   }
 } 

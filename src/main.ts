@@ -1,19 +1,28 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+  });
   
   // Enable CORS
   app.enableCors();
+  logger.log('CORS enabled');
+  
+  // Add global prefix
+  app.setGlobalPrefix('api/v1');
+  logger.log('Global prefix set to: api/v1');
   
   // Enable validation pipes
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     transform: true,
   }));
+  logger.log('Global validation pipe enabled');
 
   // Setup Swagger documentation
   const config = new DocumentBuilder()
@@ -22,11 +31,14 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('registration')
     .addTag('payment')
+    .addBearerAuth()
     .build();
   
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api/v1/swagger', app, document);
+  logger.log('Swagger documentation setup complete');
 
-  await app.listen(3000);
+  await app.listen(3002);
+  logger.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap(); 

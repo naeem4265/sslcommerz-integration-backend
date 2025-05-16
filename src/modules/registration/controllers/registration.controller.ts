@@ -1,15 +1,16 @@
-import { Controller, Get, Post, Body, Param, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, HttpStatus, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { RegistrationService } from '../services/registration.service';
 import { CreateRegistrationDto } from '../dtos/create-registration.dto';
 import { RegistrationResponseDto } from '../dtos/registration-response.dto';
-import { Registration, RegistrationDocument } from '../entities/registration.entity';
+import { Registration } from '../entities/registration.entity';
 import { PaymentMethod } from '../../payment/types/payment-method.enum';
-import { Types } from 'mongoose';
 
 @ApiTags('registration')
 @Controller('registration')
 export class RegistrationController {
+  private readonly logger = new Logger(RegistrationController.name);
+
   constructor(private readonly registrationService: RegistrationService) {}
 
   @Post()
@@ -27,7 +28,9 @@ export class RegistrationController {
     description: 'Invalid input data'
   })
   async create(@Body() createRegistrationDto: CreateRegistrationDto): Promise<RegistrationResponseDto> {
+    this.logger.log(`Creating new registration for ${createRegistrationDto.fullName}`);
     const registration = await this.registrationService.create(createRegistrationDto);
+    this.logger.debug(`Registration created with ID: ${registration.id}`);
     return this.toResponseDto(registration);
   }
 
@@ -42,7 +45,9 @@ export class RegistrationController {
     type: [RegistrationResponseDto]
   })
   async findAll(): Promise<RegistrationResponseDto[]> {
+    this.logger.log('Fetching all registrations');
     const registrations = await this.registrationService.findAll();
+    this.logger.debug(`Found ${registrations.length} registrations`);
     return registrations.map(reg => this.toResponseDto(reg));
   }
 
@@ -66,6 +71,7 @@ export class RegistrationController {
     description: 'Registration not found'
   })
   async findOne(@Param('id') id: string): Promise<RegistrationResponseDto> {
+    this.logger.log(`Fetching registration with ID: ${id}`);
     const registration = await this.registrationService.findOne(id);
     return this.toResponseDto(registration);
   }
@@ -94,22 +100,22 @@ export class RegistrationController {
     @Body('paymentMethod') paymentMethod: PaymentMethod,
     @Body('transactionId') transactionId: string,
   ): Promise<RegistrationResponseDto> {
+    this.logger.log(`Updating payment status for registration ID: ${id}`);
+    this.logger.debug(`Payment method: ${paymentMethod}, Transaction ID: ${transactionId}`);
     const registration = await this.registrationService.updatePaymentStatus(
       id,
       paymentMethod,
       transactionId,
     );
+    this.logger.log(`Payment status updated successfully for registration ID: ${id}`);
     return this.toResponseDto(registration);
   }
 
   private toResponseDto(registration: Registration): RegistrationResponseDto {
     const response = new RegistrationResponseDto();
-    const doc = (registration as RegistrationDocument).toObject();
     Object.assign(response, {
-      id: doc._id.toString(),
-      ...doc,
-      _id: undefined,
-      __v: undefined,
+      ...registration,
+      id: registration.id,
     });
     return response;
   }

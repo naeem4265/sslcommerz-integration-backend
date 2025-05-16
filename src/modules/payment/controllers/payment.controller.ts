@@ -13,7 +13,7 @@ export class PaymentController {
   @Post('initiate')
   @ApiOperation({
     summary: 'Initiate a payment',
-    description: 'Initiates a payment transaction with the selected payment gateway'
+    description: 'Initiates a payment transaction with SSLCommerz payment gateway'
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -35,7 +35,7 @@ export class PaymentController {
   @Post('verify')
   @ApiOperation({
     summary: 'Verify a payment',
-    description: 'Verifies the payment status with the payment gateway'
+    description: 'Verifies the payment status with SSLCommerz'
   })
   @ApiResponse({
     status: HttpStatus.OK,

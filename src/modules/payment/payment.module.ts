@@ -1,18 +1,18 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { PaymentTransaction } from './entities/payment-transaction.entity';
 import { PaymentController } from './controllers/payment.controller';
 import { PaymentService } from './services/payment.service';
 import { PaymentRepository } from './repositories/payment.repository';
-import { PaymentTransaction, PaymentTransactionSchema } from './entities/payment-transaction.entity';
+import { SSLCommerzService } from './services/sslcommerz.service';
+import { RegistrationModule } from '../registration/registration.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: PaymentTransaction.name, schema: PaymentTransactionSchema },
-    ]),
+    TypeOrmModule.forFeature([PaymentTransaction]),
+    RegistrationModule,
   ],
   controllers: [PaymentController],
-  providers: [PaymentService, PaymentRepository],
-  exports: [PaymentService],
+  providers: [PaymentService, PaymentRepository, SSLCommerzService],
 })
 export class PaymentModule {} 

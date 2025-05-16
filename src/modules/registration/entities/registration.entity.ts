@@ -1,59 +1,59 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { PaymentMethod } from '../../payment/types/payment-method.enum';
 
-@Schema({ timestamps: true })
+@Entity('registrations')
 export class Registration {
-  _id: Types.ObjectId;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Prop({ required: true })
+  @Column()
   fullName: string;
 
-  @Prop({ required: true })
+  @Column()
   email: string;
 
-  @Prop({ required: true })
+  @Column()
   phone: string;
 
-  @Prop({ required: true })
+  @Column()
   batch: string;
 
-  @Prop({ required: true })
+  @Column()
   department: string;
 
-  @Prop()
+  @Column({ nullable: true })
   currentOrganization?: string;
 
-  @Prop()
+  @Column({ nullable: true })
   designation?: string;
 
-  @Prop({ required: true })
+  @Column()
   address: string;
 
-  @Prop({ default: false })
+  @Column({ default: false })
   paymentCompleted: boolean;
 
-  @Prop({ type: String, enum: PaymentMethod })
+  @Column({ type: 'enum', enum: PaymentMethod, nullable: true })
   paymentMethod?: PaymentMethod;
 
-  @Prop()
+  @Column({ nullable: true })
   paymentTransactionId?: string;
 
-  @Prop()
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   paymentAmount?: number;
 
-  @Prop()
+  @Column({ type: 'timestamp', nullable: true })
   paymentInitiatedAt?: Date;
 
-  @Prop()
+  @Column({ type: 'timestamp', nullable: true })
   paymentCompletedAt?: Date;
 
-  @Prop({ default: 'PENDING' })
+  @Column({ type: 'enum', enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' })
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
 
+  @CreateDateColumn()
   createdAt: Date;
-  updatedAt: Date;
-}
 
-export type RegistrationDocument = Registration & Document;
-export const RegistrationSchema = SchemaFactory.createForClass(Registration); 
+  @UpdateDateColumn()
+  updatedAt: Date;
+} 

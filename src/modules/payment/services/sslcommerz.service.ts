@@ -17,7 +17,7 @@ export class SSLCommerzService {
         store_passwd: sslcommerzConfig.storePassword,
         total_amount: amount,
         currency: 'BDT',
-        tran_id: `REG-${registration._id}-${Date.now()}`,
+        tran_id: `REG-${registration.id}-${Date.now()}`,
         success_url: sslcommerzConfig.successUrl,
         fail_url: sslcommerzConfig.failUrl,
         cancel_url: sslcommerzConfig.cancelUrl,

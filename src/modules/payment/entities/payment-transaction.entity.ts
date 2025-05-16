@@ -1,44 +1,49 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Schema as MongooseSchema } from 'mongoose';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { PaymentMethod } from '../types/payment-method.enum';
+import { Registration } from '../../registration/entities/registration.entity';
 
-export type PaymentTransactionDocument = PaymentTransaction & Document;
+@Entity('payment_transactions')
+export class PaymentTransaction {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-@Schema({ timestamps: true })
-export class PaymentTransaction extends Document {
-  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Registration' })
-  registrationId: string;
-
-  @Prop({ required: true })
+  @Column()
   transactionId: string;
 
-  @Prop({ required: true, type: String, enum: PaymentMethod })
+  @Column({ type: 'uuid' })
+  registrationId: string;
+
+  @ManyToOne(() => Registration)
+  @JoinColumn({ name: 'registrationId' })
+  registration: Registration;
+
+  @Column({ type: 'enum', enum: PaymentMethod })
   paymentMethod: PaymentMethod;
 
-  @Prop({ required: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount: number;
 
-  @Prop({ default: 'PENDING' })
+  @Column()
+  paymentUrl: string;
+
+  @Column({ type: 'enum', enum: ['PENDING', 'COMPLETED', 'FAILED'], default: 'PENDING' })
   status: 'PENDING' | 'COMPLETED' | 'FAILED';
 
-  @Prop()
-  paymentUrl?: string;
-
-  @Prop()
+  @Column({ nullable: true })
   gatewayResponse?: string;
 
-  @Prop()
+  @Column({ type: 'timestamp', nullable: true })
   completedAt?: Date;
 
-  @Prop()
+  @Column({ type: 'timestamp', nullable: true })
   failedAt?: Date;
 
-  @Prop()
+  @Column({ nullable: true })
   failureReason?: string;
 
-  // Add timestamps from Schema options
+  @CreateDateColumn()
   createdAt: Date;
-  updatedAt: Date;
-}
 
-export const PaymentTransactionSchema = SchemaFactory.createForClass(PaymentTransaction); 
+  @UpdateDateColumn()
+  updatedAt: Date;
+} 
