@@ -3,6 +3,8 @@ import { CreateRegistrationDto } from '../dtos/create-registration.dto';
 import { RegistrationRepository } from '../repositories/registration.repository';
 import { Registration } from '../entities/registration.entity';
 import { PaymentMethod } from '../../payment/types/payment-method.enum';
+import { PaginationDto } from '../dtos/pagination.dto';
+import { PaginationResponseDto } from '../dtos/pagination-response.dto';
 
 @Injectable()
 export class RegistrationService {
@@ -24,12 +26,26 @@ export class RegistrationService {
     }
   }
 
-  async findAll(): Promise<Registration[]> {
+  async findAll(paginationDto: PaginationDto): Promise<PaginationResponseDto<Registration>> {
     try {
-      this.logger.log('Fetching all registrations');
-      const registrations = await this.registrationRepository.findAll();
-      this.logger.debug(`Found ${registrations.length} registrations`);
-      return registrations;
+      this.logger.log('Fetching registrations with pagination');
+      const [items, total] = await this.registrationRepository.findAll(paginationDto);
+      
+      const totalPages = Math.ceil(total / paginationDto.limit);
+      
+      this.logger.debug(`Found ${items.length} registrations (page ${paginationDto.page} of ${totalPages})`);
+      
+      return {
+        data: items,
+        pagination: {
+          total,
+          page: paginationDto.page,
+          limit: paginationDto.limit,
+          totalPages,
+          hasPreviousPage: paginationDto.page > 1,
+          hasNextPage: paginationDto.page < totalPages
+        }
+      };
     } catch (error) {
       this.logger.error(`Failed to fetch registrations: ${error.message}`);
       throw new InternalServerErrorException(

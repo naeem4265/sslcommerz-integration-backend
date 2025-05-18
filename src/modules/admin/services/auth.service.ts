@@ -62,19 +62,19 @@ export class AuthService {
   }
 
   async login(loginAdminDto: LoginAdminDto): Promise<{ accessToken: string; refreshToken: string }> {
-    const { username, password } = loginAdminDto;
+    const { email, password } = loginAdminDto;
     
-    // Find admin by username
-    const admin = await this.adminRepository.findByUsername(username);
+    // Find admin by email
+    const admin = await this.adminRepository.findByEmail(email);
     if (!admin) {
-      this.logger.warn(`Login attempt for non-existent admin: ${username}`);
+      this.logger.warn(`Login attempt for non-existent admin: ${email}`);
       throw new UnauthorizedException('Invalid credentials');
     }
 
     // Verify password
     const isPasswordValid = await this.comparePasswords(password, admin.password);
     if (!isPasswordValid) {
-      this.logger.warn(`Invalid password for admin: ${username}`);
+      this.logger.warn(`Invalid password for admin: ${email}`);
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -84,7 +84,7 @@ export class AuthService {
     // Save refresh token
     await this.updateRefreshToken(admin.id, tokens.refreshToken);
     
-    this.logger.log(`Admin logged in successfully: ${username}`);
+    this.logger.log(`Admin logged in successfully: ${email}`);
     return tokens;
   }
 
@@ -127,7 +127,12 @@ export class AuthService {
   }
 
   private async generateTokens(admin: Admin): Promise<{ accessToken: string; refreshToken: string }> {
-    const payload = { username: admin.username, sub: admin.id, role: admin.role };
+    const payload = { 
+      username: admin.username,
+      email: admin.email, 
+      sub: admin.id, 
+      role: admin.role 
+    };
     
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {

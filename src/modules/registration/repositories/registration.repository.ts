@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { Registration } from '../entities/registration.entity';
 import { CreateRegistrationDto } from '../dtos/create-registration.dto';
-import { PaymentMethod } from '../../payment/types/payment-method.enum';
+import { PaginationDto } from '../dtos/pagination.dto';
 
 @Injectable()
 export class RegistrationRepository {
@@ -17,12 +17,33 @@ export class RegistrationRepository {
     return this.registrationRepository.save(registration);
   }
 
-  async findAll(): Promise<Registration[]> {
-    return this.registrationRepository.find();
+  async findAll(paginationDto: PaginationDto): Promise<[Registration[], number]> {
+    const { skip, limit, search } = paginationDto;
+    
+    const queryBuilder = this.registrationRepository.createQueryBuilder('registration');
+    
+    // Apply search filter if provided
+    if (search) {
+      queryBuilder.where(
+        '(registration.email ILIKE :search OR ' +
+        'registration.fullName ILIKE :search OR ' +
+        'registration.phone ILIKE :search)', 
+        { search: `%${search}%` }
+      );
+    }
+    
+    // Apply pagination
+    queryBuilder
+      .orderBy('registration.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
+    
+    // Execute query with count
+    return queryBuilder.getManyAndCount();
   }
 
   async findById(id: string): Promise<Registration | null> {
-    return this.registrationRepository.findOneBy({ id });
+    return this.registrationRepository.findOne({ where: { id } });
   }
 
   async save(registration: Registration): Promise<Registration> {

@@ -10,6 +10,7 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 // Define the JWT payload user interface
 interface JwtUser {
   username: string;
+  email: string;
   sub: string;
   role: string;
 }
@@ -61,7 +62,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Login as admin',
-    description: 'Authenticates admin and returns JWT tokens'
+    description: 'Authenticates admin with email and password and returns JWT tokens'
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -73,7 +74,7 @@ export class AuthController {
   })
   async login(@Body() loginAdminDto: LoginAdminDto) {
     try {
-      this.logger.log(`Admin login attempt: ${loginAdminDto.username}`);
+      this.logger.log(`Admin login attempt: ${loginAdminDto.email}`);
       const tokens = await this.authService.login(loginAdminDto);
       return {
         message: 'Admin logged in successfully',

@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Body, Param, HttpStatus, Logger } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Param, HttpStatus, Logger, UseGuards, Query } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { RegistrationService } from '../services/registration.service';
 import { CreateRegistrationDto } from '../dtos/create-registration.dto';
 import { RegistrationResponseDto } from '../dtos/registration-response.dto';
 import { Registration } from '../entities/registration.entity';
 import { PaymentMethod } from '../../payment/types/payment-method.enum';
+import { JwtAuthGuard } from '../../admin/guards/jwt-auth.guard';
+import { PaginationDto } from '../dtos/pagination.dto';
+import { PaginationResponseDto } from '../dtos/pagination-response.dto';
 
 @ApiTags('registration')
 @Controller('registration')
@@ -40,21 +43,53 @@ export class RegistrationController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Get all registrations',
-    description: 'Retrieves all registrations for the Alumni Get Together event'
+    summary: 'Get all registrations with pagination',
+    description: 'Retrieves paginated registrations for the Alumni Get Together event (Admin only)'
+  })
+  @ApiQuery({ 
+    name: 'page', 
+    required: false, 
+    description: 'Page number (starting from 1)',
+    type: Number 
+  })
+  @ApiQuery({ 
+    name: 'limit', 
+    required: false, 
+    description: 'Number of items per page (max 100)',
+    type: Number
+  })
+  @ApiQuery({ 
+    name: 'search', 
+    required: false, 
+    description: 'Search term to filter registrations by email',
+    type: String
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Returns all registrations',
-    type: [RegistrationResponseDto]
+    description: 'Returns paginated registrations',
+    type: PaginationResponseDto
   })
-  async findAll(): Promise<RegistrationResponseDto[]> {
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Unauthorized - Admin access required'
+  })
+  async findAll(@Query() paginationDto: PaginationDto): Promise<PaginationResponseDto<RegistrationResponseDto>> {
     try {
-      this.logger.log('Fetching all registrations');
-      const registrations = await this.registrationService.findAll();
-      this.logger.debug(`Found ${registrations.length} registrations`);
-      return registrations.map(reg => this.toResponseDto(reg));
+      this.logger.log(`Fetching registrations page ${paginationDto.page}, limit ${paginationDto.limit}`);
+      if (paginationDto.search) {
+        this.logger.log(`Searching by term: ${paginationDto.search}`);
+      }
+      
+      const paginatedResult = await this.registrationService.findAll(paginationDto);
+      
+      // Create a new object with transformed items
+      return {
+        data: paginatedResult.data.map(reg => this.toResponseDto(reg)),
+        pagination: paginatedResult.pagination
+      };
     } catch (error) {
       this.logger.error(`Failed to fetch registrations: ${error.message}`);
       throw error;
@@ -62,9 +97,11 @@ export class RegistrationController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get a registration by id',
-    description: 'Retrieves a specific registration by its ID'
+    description: 'Retrieves a specific registration by its ID (Admin only)'
   })
   @ApiParam({
     name: 'id',
@@ -80,6 +117,10 @@ export class RegistrationController {
     status: HttpStatus.NOT_FOUND,
     description: 'Registration not found'
   })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Unauthorized - Admin access required'
+  })
   async findOne(@Param('id') id: string): Promise<RegistrationResponseDto> {
     try {
       this.logger.log(`Fetching registration with ID: ${id}`);
@@ -92,9 +133,11 @@ export class RegistrationController {
   }
 
   @Post(':id/payment')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Update payment status',
-    description: 'Updates the payment status for a specific registration'
+    description: 'Updates the payment status for a specific registration (Admin only)'
   })
   @ApiParam({
     name: 'id',
@@ -109,6 +152,10 @@ export class RegistrationController {
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Registration not found'
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Unauthorized - Admin access required'
   })
   async updatePaymentStatus(
     @Param('id') id: string,
