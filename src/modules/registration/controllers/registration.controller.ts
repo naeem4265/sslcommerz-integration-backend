@@ -31,15 +31,9 @@ export class RegistrationController {
     description: 'Invalid input data'
   })
   async create(@Body() createRegistrationDto: CreateRegistrationDto): Promise<RegistrationResponseDto> {
-    try {
-      this.logger.log(`Creating new registration for ${createRegistrationDto.fullName}`);
-      const registration = await this.registrationService.create(createRegistrationDto);
-      this.logger.debug(`Registration created with ID: ${registration.id}`);
-      return this.toResponseDto(registration);
-    } catch (error) {
-      this.logger.error(`Failed to create registration: ${error.message}`);
-      throw error;
-    }
+    this.logger.log(`Creating registration for ${createRegistrationDto.fullName}`);
+    const registration = await this.registrationService.create(createRegistrationDto);
+    return this.toResponseDto(registration);
   }
 
   @Get()
@@ -49,24 +43,9 @@ export class RegistrationController {
     summary: 'Get all registrations with pagination',
     description: 'Retrieves paginated registrations for the Alumni Get Together event (Admin only)'
   })
-  @ApiQuery({ 
-    name: 'page', 
-    required: false, 
-    description: 'Page number (starting from 1)',
-    type: Number 
-  })
-  @ApiQuery({ 
-    name: 'limit', 
-    required: false, 
-    description: 'Number of items per page (max 100)',
-    type: Number
-  })
-  @ApiQuery({ 
-    name: 'search', 
-    required: false, 
-    description: 'Search term to filter registrations by email',
-    type: String
-  })
+  @ApiQuery({ name: 'page', required: false, description: 'Page number (starting from 1)', type: Number })
+  @ApiQuery({ name: 'limit', required: false, description: 'Number of items per page (max 100)', type: Number })
+  @ApiQuery({ name: 'search', required: false, description: 'Search term to filter registrations by email', type: String })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns paginated registrations',
@@ -77,23 +56,13 @@ export class RegistrationController {
     description: 'Unauthorized - Admin access required'
   })
   async findAll(@Query() paginationDto: PaginationDto): Promise<PaginationResponseDto<RegistrationResponseDto>> {
-    try {
-      this.logger.log(`Fetching registrations page ${paginationDto.page}, limit ${paginationDto.limit}`);
-      if (paginationDto.search) {
-        this.logger.log(`Searching by term: ${paginationDto.search}`);
-      }
-      
-      const paginatedResult = await this.registrationService.findAll(paginationDto);
-      
-      // Create a new object with transformed items
-      return {
-        data: paginatedResult.data.map(reg => this.toResponseDto(reg)),
-        pagination: paginatedResult.pagination
-      };
-    } catch (error) {
-      this.logger.error(`Failed to fetch registrations: ${error.message}`);
-      throw error;
-    }
+    this.logger.log(`Fetching registrations page ${paginationDto.page}, limit ${paginationDto.limit}`);
+    const paginatedResult = await this.registrationService.findAll(paginationDto);
+    
+    return {
+      data: paginatedResult.data.map(reg => this.toResponseDto(reg)),
+      pagination: paginatedResult.pagination
+    };
   }
 
   @Get(':id')
@@ -122,14 +91,9 @@ export class RegistrationController {
     description: 'Unauthorized - Admin access required'
   })
   async findOne(@Param('id') id: string): Promise<RegistrationResponseDto> {
-    try {
-      this.logger.log(`Fetching registration with ID: ${id}`);
-      const registration = await this.registrationService.findOne(id);
-      return this.toResponseDto(registration);
-    } catch (error) {
-      this.logger.error(`Failed to fetch registration: ${error.message}`);
-      throw error;
-    }
+    this.logger.log(`Fetching registration with ID: ${id}`);
+    const registration = await this.registrationService.findOne(id);
+    return this.toResponseDto(registration);
   }
 
   @Post(':id/payment')
@@ -162,20 +126,13 @@ export class RegistrationController {
     @Body('paymentMethod') paymentMethod: PaymentMethod,
     @Body('transactionId') transactionId: string,
   ): Promise<RegistrationResponseDto> {
-    try {
-      this.logger.log(`Updating payment status for registration ID: ${id}`);
-      this.logger.debug(`Payment method: ${paymentMethod}, Transaction ID: ${transactionId}`);
-      const registration = await this.registrationService.updatePaymentStatus(
-        id,
-        paymentMethod,
-        transactionId,
-      );
-      this.logger.log(`Payment status updated successfully for registration ID: ${id}`);
-      return this.toResponseDto(registration);
-    } catch (error) {
-      this.logger.error(`Failed to update payment status: ${error.message}`);
-      throw error;
-    }
+    this.logger.log(`Updating payment status for registration ID: ${id}`);
+    const registration = await this.registrationService.updatePaymentStatus(
+      id,
+      paymentMethod,
+      transactionId,
+    );
+    return this.toResponseDto(registration);
   }
 
   private toResponseDto(registration: Registration): RegistrationResponseDto {

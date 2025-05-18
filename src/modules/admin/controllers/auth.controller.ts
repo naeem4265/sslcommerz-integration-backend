@@ -45,17 +45,12 @@ export class AuthController {
     description: 'Invalid admin secret key'
   })
   async register(@Body() createAdminDto: CreateAdminDto) {
-    try {
-      this.logger.log(`Registering new admin: ${createAdminDto.username}`);
-      const tokens = await this.authService.register(createAdminDto);
-      return {
-        message: 'Admin registered successfully',
-        ...tokens
-      };
-    } catch (error) {
-      this.logger.error(`Admin registration failed: ${error.message}`);
-      throw error;
-    }
+    this.logger.log(`Registering new admin: ${createAdminDto.email}`);
+    const tokens = await this.authService.register(createAdminDto);
+    return {
+      message: 'Admin registered successfully',
+      ...tokens
+    };
   }
 
   @Post('login')
@@ -73,17 +68,12 @@ export class AuthController {
     description: 'Invalid credentials'
   })
   async login(@Body() loginAdminDto: LoginAdminDto) {
-    try {
-      this.logger.log(`Admin login attempt: ${loginAdminDto.email}`);
-      const tokens = await this.authService.login(loginAdminDto);
-      return {
-        message: 'Admin logged in successfully',
-        ...tokens
-      };
-    } catch (error) {
-      this.logger.error(`Admin login failed: ${error.message}`);
-      throw error;
-    }
+    this.logger.log(`Admin login attempt: ${loginAdminDto.email}`);
+    const tokens = await this.authService.login(loginAdminDto);
+    return {
+      message: 'Admin logged in successfully',
+      ...tokens
+    };
   }
 
   @Post('refresh')
@@ -101,17 +91,12 @@ export class AuthController {
     description: 'Invalid refresh token'
   })
   async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
-    try {
-      this.logger.log('Token refresh attempt');
-      const tokens = await this.authService.refreshToken(refreshTokenDto.refreshToken);
-      return {
-        message: 'Token refreshed successfully',
-        ...tokens
-      };
-    } catch (error) {
-      this.logger.error(`Token refresh failed: ${error.message}`);
-      throw error;
-    }
+    this.logger.log('Token refresh attempt');
+    const tokens = await this.authService.refreshToken(refreshTokenDto.refreshToken);
+    return {
+      message: 'Token refreshed successfully',
+      ...tokens
+    };
   }
 
   @Post('logout')
@@ -131,15 +116,10 @@ export class AuthController {
     description: 'Unauthorized'
   })
   async logout(@Request() req: RequestWithUser) {
-    try {
-      this.logger.log(`Admin logout: ${req.user.username}`);
-      await this.authService.logout(req.user.sub);
-      return {
-        message: 'Admin logged out successfully'
-      };
-    } catch (error) {
-      this.logger.error(`Admin logout failed: ${error.message}`);
-      throw error;
-    }
+    this.logger.log(`Admin logout: ${req.user.username}`);
+    await this.authService.logout(req.user.sub);
+    return {
+      message: 'Admin logged out successfully'
+    };
   }
 } 

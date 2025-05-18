@@ -26,7 +26,6 @@ export class AuthService {
     
     // Verify secret key
     if (secretKey !== this.jwtConfig.adminSecretKey) {
-      this.logger.warn(`Admin registration attempt with invalid secret key: ${secretKey}`);
       throw new UnauthorizedException('Invalid admin secret key');
     }
 

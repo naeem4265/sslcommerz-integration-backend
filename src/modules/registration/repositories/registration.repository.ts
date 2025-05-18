@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Registration } from '../entities/registration.entity';
 import { CreateRegistrationDto } from '../dtos/create-registration.dto';
 import { PaginationDto } from '../dtos/pagination.dto';
@@ -22,7 +22,6 @@ export class RegistrationRepository {
     
     const queryBuilder = this.registrationRepository.createQueryBuilder('registration');
     
-    // Apply search filter if provided
     if (search) {
       queryBuilder.where(
         '(registration.email ILIKE :search OR ' +
@@ -32,13 +31,11 @@ export class RegistrationRepository {
       );
     }
     
-    // Apply pagination
     queryBuilder
       .orderBy('registration.createdAt', 'DESC')
       .skip(skip)
       .take(limit);
     
-    // Execute query with count
     return queryBuilder.getManyAndCount();
   }
 
