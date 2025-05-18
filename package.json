@@ -15,7 +15,12 @@
     "lint": "eslint \"{src,apps,libs}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:cov": "jest --coverage"
+    "test:cov": "jest --coverage",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "migration:create": "npm run typeorm -- migration:create",
+    "migration:generate": "npm run typeorm -- migration:generate -d src/database/typeorm.config.ts",
+    "migration:run": "npm run typeorm -- migration:run -d src/database/typeorm.config.ts",
+    "migration:revert": "npm run typeorm -- migration:revert -d src/database/typeorm.config.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.3",

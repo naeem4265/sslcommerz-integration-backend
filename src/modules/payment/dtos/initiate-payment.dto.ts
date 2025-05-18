@@ -1,6 +1,5 @@
-import { IsString, IsNumber, IsEnum, IsNotEmpty, Min } from 'class-validator';
+import { IsString, IsNumber, IsNotEmpty, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { PaymentMethod } from '../types/payment-method.enum';
 
 export class InitiatePaymentDto {
   @ApiProperty({
@@ -19,12 +18,4 @@ export class InitiatePaymentDto {
   @IsNumber()
   @Min(1)
   amount: number;
-
-  @ApiProperty({
-    description: 'Payment method',
-    enum: PaymentMethod,
-    example: PaymentMethod.BKASH
-  })
-  @IsEnum(PaymentMethod)
-  paymentMethod: PaymentMethod;
 } 

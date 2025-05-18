@@ -13,22 +13,21 @@ export class PaymentController {
   @Post('initiate')
   @ApiOperation({
     summary: 'Initiate a payment',
-    description: 'Initiates a payment transaction with SSLCommerz payment gateway'
+    description: 'Initiates a payment transaction with SSLCommerz payment gateway. The user will be redirected to SSLCommerz gateway to choose their payment method.'
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: 'Payment initiated successfully',
+    description: 'Payment initiated successfully. Returns the SSLCommerz gateway URL.',
     type: PaymentTransactionResponseDto
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid input data or payment method not supported'
+    description: 'Invalid input data'
   })
   async initiatePayment(@Body() initiatePaymentDto: InitiatePaymentDto) {
     return this.paymentService.initiatePayment(
       initiatePaymentDto.registrationId,
-      initiatePaymentDto.amount,
-      initiatePaymentDto.paymentMethod,
+      initiatePaymentDto.amount
     );
   }
 

@@ -1,27 +1,33 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import axios from 'axios';
-import { sslcommerzConfig } from '../../../config/sslcommerz.config';
+import { ConfigService } from '@nestjs/config';
+import { getSslcommerzConfig } from '../../../config/sslcommerz.config';
 import { Registration } from '../../registration/entities/registration.entity';
 
 @Injectable()
 export class SSLCommerzService {
+  private readonly config;
   private readonly apiEndpoints = {
     createPayment: '/gwprocess/v4/api.php',
     validatePayment: '/validator/api/validationserverAPI.php',
   };
 
+  constructor(private readonly configService: ConfigService) {
+    this.config = getSslcommerzConfig(configService);
+  }
+
   async initiatePayment(registration: Registration, amount: number): Promise<string> {
     try {
       const payload = {
-        store_id: sslcommerzConfig.storeId,
-        store_passwd: sslcommerzConfig.storePassword,
+        store_id: this.config.storeId,
+        store_passwd: this.config.storePassword,
         total_amount: amount,
         currency: 'BDT',
         tran_id: `REG-${registration.id}-${Date.now()}`,
-        success_url: sslcommerzConfig.successUrl,
-        fail_url: sslcommerzConfig.failUrl,
-        cancel_url: sslcommerzConfig.cancelUrl,
-        ipn_url: sslcommerzConfig.ipnUrl,
+        success_url: this.config.successUrl,
+        fail_url: this.config.failUrl,
+        cancel_url: this.config.cancelUrl,
+        ipn_url: this.config.ipnUrl,
         shipping_method: 'NO',
         product_name: 'ThPI Alumni Registration',
         product_category: 'Registration',
@@ -35,9 +41,11 @@ export class SSLCommerzService {
       };
 
       const response = await axios.post(
-        `${sslcommerzConfig.baseUrl}${this.apiEndpoints.createPayment}`,
+        `${this.config.baseUrl}${this.apiEndpoints.createPayment}`,
         payload,
       );
+
+      console.log('payload----------------------->', payload, response.data);
 
       if (response.data.status === 'SUCCESS') {
         return response.data.GatewayPageURL;
@@ -61,13 +69,13 @@ export class SSLCommerzService {
   ): Promise<boolean> {
     try {
       const payload = {
-        store_id: sslcommerzConfig.storeId,
-        store_passwd: sslcommerzConfig.storePassword,
+        store_id: this.config.storeId,
+        store_passwd: this.config.storePassword,
         val_id: validationId,
       };
 
       const response = await axios.post(
-        `${sslcommerzConfig.baseUrl}${this.apiEndpoints.validatePayment}`,
+        `${this.config.baseUrl}${this.apiEndpoints.validatePayment}`,
         payload,
       );
 

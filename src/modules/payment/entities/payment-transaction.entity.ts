@@ -17,29 +17,17 @@ export class PaymentTransaction {
   @JoinColumn({ name: 'registrationId' })
   registration: Registration;
 
-  @Column({ type: 'enum', enum: PaymentMethod })
-  paymentMethod: PaymentMethod;
-
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount: number;
 
-  @Column()
+  @Column({ nullable: true })
   paymentUrl: string;
-
-  @Column({ type: 'enum', enum: ['PENDING', 'COMPLETED', 'FAILED'], default: 'PENDING' })
-  status: 'PENDING' | 'COMPLETED' | 'FAILED';
 
   @Column({ nullable: true })
   gatewayResponse?: string;
 
   @Column({ type: 'timestamp', nullable: true })
   completedAt?: Date;
-
-  @Column({ type: 'timestamp', nullable: true })
-  failedAt?: Date;
-
-  @Column({ nullable: true })
-  failureReason?: string;
 
   @CreateDateColumn()
   createdAt: Date;

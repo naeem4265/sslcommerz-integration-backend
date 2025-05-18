@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { PaymentMethod } from '../types/payment-method.enum';
 import { PaymentRepository } from '../repositories/payment.repository';
 import { PaymentTransaction } from '../entities/payment-transaction.entity';
@@ -8,6 +8,8 @@ import { RegistrationService } from '../../registration/services/registration.se
 
 @Injectable()
 export class PaymentService {
+  private readonly logger = new Logger(PaymentService.name);
+
   constructor(
     private readonly paymentRepository: PaymentRepository,
     private readonly sslcommerzService: SSLCommerzService,
@@ -17,19 +19,20 @@ export class PaymentService {
   async initiatePayment(
     registrationId: string,
     amount: number,
-    paymentMethod: PaymentMethod,
   ): Promise<PaymentTransactionResponseDto> {
     try {
+      this.logger.log(`Initiating payment for registration: ${registrationId}`);
+      
       // Get registration details
       const registration = await this.registrationService.findOne(registrationId);
 
-      // Create payment transaction
+      // Create initial payment transaction
       const transaction = await this.paymentRepository.createTransaction(
         registrationId,
-        amount,
-        paymentMethod,
+        amount
       );
 
+      console.log('transaction----------------------->', transaction);
       // Initialize SSLCommerz payment
       const paymentUrl = await this.sslcommerzService.initiatePayment(
         registration,
@@ -40,8 +43,10 @@ export class PaymentService {
       transaction.paymentUrl = paymentUrl;
       await this.paymentRepository.save(transaction);
 
+      this.logger.debug(`Payment initiated, transaction ID: ${transaction.transactionId}`);
       return this.toResponseDto(transaction);
     } catch (error) {
+      this.logger.error(`Failed to initiate payment: ${error.message}`);
       throw new BadRequestException(
         error.message || 'Failed to initiate payment',
       );
@@ -54,11 +59,13 @@ export class PaymentService {
     validationId: string,
   ): Promise<PaymentTransactionResponseDto> {
     try {
+      this.logger.log(`Processing payment callback for transaction: ${transactionId}`);
       const transaction = await this.paymentRepository.findTransactionById(
         transactionId,
       );
 
       if (!transaction) {
+        this.logger.warn(`Transaction not found: ${transactionId}`);
         throw new NotFoundException(`Transaction ${transactionId} not found`);
       }
 
@@ -71,25 +78,27 @@ export class PaymentService {
       );
 
       if (!isValid) {
+        this.logger.warn(`Payment validation failed for transaction: ${transactionId}`);
         throw new BadRequestException('Payment validation failed');
       }
 
-      // Update transaction status
-      const updatedTransaction = await this.paymentRepository.updateTransactionStatus(
+      // Update transaction with payment completion
+      const updatedTransaction = await this.paymentRepository.updateTransaction(
         transaction,
-        'COMPLETED',
-        'Payment verified successfully',
+        'Payment verified successfully'
       );
 
       // Update registration payment status
       await this.registrationService.updatePaymentStatus(
         transaction.registrationId,
-        transaction.paymentMethod,
+        PaymentMethod.SSLCOMMERZ, // Send direct enum value
         transactionId,
       );
 
+      this.logger.log(`Payment verified successfully for transaction: ${transactionId}`);
       return this.toResponseDto(updatedTransaction);
     } catch (error) {
+      this.logger.error(`Payment verification failed: ${error.message}`);
       if (error instanceof NotFoundException) {
         throw error;
       }
@@ -115,14 +124,10 @@ export class PaymentService {
     Object.assign(response, {
       registrationId: transaction.registrationId,
       transactionId: transaction.transactionId,
-      paymentMethod: transaction.paymentMethod,
       amount: transaction.amount,
-      status: transaction.status,
       paymentUrl: transaction.paymentUrl,
       gatewayResponse: transaction.gatewayResponse,
       completedAt: transaction.completedAt,
-      failedAt: transaction.failedAt,
-      failureReason: transaction.failureReason,
       createdAt: transaction.createdAt,
       updatedAt: transaction.updatedAt,
     });
