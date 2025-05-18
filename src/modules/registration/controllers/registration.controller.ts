@@ -16,7 +16,7 @@ export class RegistrationController {
   @Post()
   @ApiOperation({
     summary: 'Create a new registration',
-    description: 'Creates a new registration for the ThPI Alumni Get Together event'
+    description: 'Creates a new registration for the Alumni Get Together event'
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -42,7 +42,7 @@ export class RegistrationController {
   @Get()
   @ApiOperation({
     summary: 'Get all registrations',
-    description: 'Retrieves all registrations for the ThPI Alumni Get Together event'
+    description: 'Retrieves all registrations for the Alumni Get Together event'
   })
   @ApiResponse({
     status: HttpStatus.OK,

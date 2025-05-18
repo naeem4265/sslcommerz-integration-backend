@@ -1,6 +1,22 @@
-# ThPI Get Together Backend
+# Alumni Get Together Backend
 
-Backend service for ThPI (Thakurgaon Polytechnic Institute) Alumni Get Together registration system.
+Backend service for Alumni Get Together registration system.
+
+## Security
+
+**IMPORTANT**: This application uses JWT for authentication and requires secret keys that should never be committed to the repository.
+
+1. Copy `.env.example` to `.env`
+2. Update the `.env` file with strong, random values for:
+   - JWT_SECRET
+   - ADMIN_SECRET_KEY
+   - Database passwords
+   - Payment gateway credentials
+
+Example of generating a strong random key:
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
 
 ## Features
 
@@ -78,4 +94,21 @@ The system supports the following payment methods:
 
 ## License
 
-This project is licensed under the MIT License. 
+This project is licensed under the MIT License.
+
+## Database Migrations
+
+```bash
+# generate migration
+npm run migration:generate src/migrations/MigrationName
+
+# run migrations
+npm run migration:run
+
+# revert last migration
+npm run migration:revert
+```
+
+## API Documentation
+
+The API documentation is available at `/api/v1/swagger` when the application is running. 

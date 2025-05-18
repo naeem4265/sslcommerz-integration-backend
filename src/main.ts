@@ -26,8 +26,8 @@ async function bootstrap() {
 
   // Setup Swagger documentation
   const config = new DocumentBuilder()
-    .setTitle('ThPI Get Together API')
-    .setDescription('API documentation for ThPI Alumni Get Together registration system')
+    .setTitle('Alumni Get Together API')
+    .setDescription('API documentation for Alumni Get Together registration system')
     .setVersion('1.0')
     .addTag('registration')
     .addTag('payment')

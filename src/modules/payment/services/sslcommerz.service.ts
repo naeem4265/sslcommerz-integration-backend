@@ -38,14 +38,14 @@ export class SSLCommerzService {
         cancel_url: this.config.cancelUrl,
         ipn_url: this.config.ipnUrl,
         shipping_method: 'NO',
-        product_name: 'ThPI Alumni Registration',
+        product_name: 'Alumni Registration',
         product_category: 'Registration',
         product_profile: 'general',
         cus_name: registration.fullName,
         cus_email: registration.email,
         cus_add1: registration.address,
         cus_phone: registration.phone,
-        cus_city: 'Thakurgaon',
+        cus_city: 'Bangladesh',
         cus_country: 'Bangladesh',
         is_live: false
       };
