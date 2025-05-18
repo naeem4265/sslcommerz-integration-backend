@@ -3,6 +3,15 @@ import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { getSslcommerzConfig } from '../../../config/sslcommerz.config';
 import { Registration } from '../../registration/entities/registration.entity';
+const SSLCommerzPayment = require('sslcommerz-lts');
+
+// Define interface for SSLCommerz response
+interface SSLCommerzResponse {
+  status: string;
+  GatewayPageURL?: string;
+  failedreason?: string;
+  [key: string]: any;
+}
 
 @Injectable()
 export class SSLCommerzService {
@@ -38,25 +47,25 @@ export class SSLCommerzService {
         cus_phone: registration.phone,
         cus_city: 'Thakurgaon',
         cus_country: 'Bangladesh',
+        is_live: false
       };
 
-      const response = await axios.post(
-        `${this.config.baseUrl}${this.apiEndpoints.createPayment}`,
-        payload,
-      );
-
-      console.log('payload----------------------->', payload, response.data);
-
-      if (response.data.status === 'SUCCESS') {
-        return response.data.GatewayPageURL;
+      const sslcz = new SSLCommerzPayment(payload.store_id, payload.store_passwd, payload.is_live);
+      
+      // Use await with Promise to get the response
+      const apiResponse: SSLCommerzResponse = await sslcz.init(payload);
+      
+      // Check if the response is successful
+      if (apiResponse.status === 'SUCCESS') {
+        return apiResponse.GatewayPageURL || '';
       }
 
       throw new BadRequestException(
-        response.data.failedreason || 'Failed to initiate payment',
+        apiResponse.failedreason || 'Failed to initiate payment'
       );
     } catch (error) {
       throw new BadRequestException(
-        error.response?.data?.failedreason || 'Failed to initiate payment',
+        error.response?.data?.failedreason || error.message || 'Failed to initiate payment'
       );
     }
   }
@@ -92,7 +101,9 @@ export class SSLCommerzService {
 
       return false;
     } catch (error) {
-      throw new BadRequestException('Failed to validate payment');
+      throw new BadRequestException(
+        error.response?.data?.message || error.message || 'Failed to validate payment'
+      );
     }
   }
 

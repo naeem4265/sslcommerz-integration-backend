@@ -28,10 +28,15 @@ export class RegistrationController {
     description: 'Invalid input data'
   })
   async create(@Body() createRegistrationDto: CreateRegistrationDto): Promise<RegistrationResponseDto> {
-    this.logger.log(`Creating new registration for ${createRegistrationDto.fullName}`);
-    const registration = await this.registrationService.create(createRegistrationDto);
-    this.logger.debug(`Registration created with ID: ${registration.id}`);
-    return this.toResponseDto(registration);
+    try {
+      this.logger.log(`Creating new registration for ${createRegistrationDto.fullName}`);
+      const registration = await this.registrationService.create(createRegistrationDto);
+      this.logger.debug(`Registration created with ID: ${registration.id}`);
+      return this.toResponseDto(registration);
+    } catch (error) {
+      this.logger.error(`Failed to create registration: ${error.message}`);
+      throw error;
+    }
   }
 
   @Get()
@@ -45,10 +50,15 @@ export class RegistrationController {
     type: [RegistrationResponseDto]
   })
   async findAll(): Promise<RegistrationResponseDto[]> {
-    this.logger.log('Fetching all registrations');
-    const registrations = await this.registrationService.findAll();
-    this.logger.debug(`Found ${registrations.length} registrations`);
-    return registrations.map(reg => this.toResponseDto(reg));
+    try {
+      this.logger.log('Fetching all registrations');
+      const registrations = await this.registrationService.findAll();
+      this.logger.debug(`Found ${registrations.length} registrations`);
+      return registrations.map(reg => this.toResponseDto(reg));
+    } catch (error) {
+      this.logger.error(`Failed to fetch registrations: ${error.message}`);
+      throw error;
+    }
   }
 
   @Get(':id')
@@ -71,9 +81,14 @@ export class RegistrationController {
     description: 'Registration not found'
   })
   async findOne(@Param('id') id: string): Promise<RegistrationResponseDto> {
-    this.logger.log(`Fetching registration with ID: ${id}`);
-    const registration = await this.registrationService.findOne(id);
-    return this.toResponseDto(registration);
+    try {
+      this.logger.log(`Fetching registration with ID: ${id}`);
+      const registration = await this.registrationService.findOne(id);
+      return this.toResponseDto(registration);
+    } catch (error) {
+      this.logger.error(`Failed to fetch registration: ${error.message}`);
+      throw error;
+    }
   }
 
   @Post(':id/payment')
@@ -100,15 +115,20 @@ export class RegistrationController {
     @Body('paymentMethod') paymentMethod: PaymentMethod,
     @Body('transactionId') transactionId: string,
   ): Promise<RegistrationResponseDto> {
-    this.logger.log(`Updating payment status for registration ID: ${id}`);
-    this.logger.debug(`Payment method: ${paymentMethod}, Transaction ID: ${transactionId}`);
-    const registration = await this.registrationService.updatePaymentStatus(
-      id,
-      paymentMethod,
-      transactionId,
-    );
-    this.logger.log(`Payment status updated successfully for registration ID: ${id}`);
-    return this.toResponseDto(registration);
+    try {
+      this.logger.log(`Updating payment status for registration ID: ${id}`);
+      this.logger.debug(`Payment method: ${paymentMethod}, Transaction ID: ${transactionId}`);
+      const registration = await this.registrationService.updatePaymentStatus(
+        id,
+        paymentMethod,
+        transactionId,
+      );
+      this.logger.log(`Payment status updated successfully for registration ID: ${id}`);
+      return this.toResponseDto(registration);
+    } catch (error) {
+      this.logger.error(`Failed to update payment status: ${error.message}`);
+      throw error;
+    }
   }
 
   private toResponseDto(registration: Registration): RegistrationResponseDto {

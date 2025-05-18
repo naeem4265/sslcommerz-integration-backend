@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, HttpStatus, Logger, InternalServerErrorException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PaymentService } from '../services/payment.service';
 import { InitiatePaymentDto } from '../dtos/initiate-payment.dto';
@@ -8,6 +8,8 @@ import { PaymentTransactionResponseDto } from '../dtos/payment-transaction-respo
 @ApiTags('payment')
 @Controller('payment')
 export class PaymentController {
+  private readonly logger = new Logger(PaymentController.name);
+  
   constructor(private readonly paymentService: PaymentService) {}
 
   @Post('initiate')
@@ -25,10 +27,18 @@ export class PaymentController {
     description: 'Invalid input data'
   })
   async initiatePayment(@Body() initiatePaymentDto: InitiatePaymentDto) {
-    return this.paymentService.initiatePayment(
-      initiatePaymentDto.registrationId,
-      initiatePaymentDto.amount
-    );
+    try {
+      this.logger.log(`Initiating payment for registration: ${initiatePaymentDto.registrationId}`);
+      const result = await this.paymentService.initiatePayment(
+        initiatePaymentDto.registrationId,
+        initiatePaymentDto.amount
+      );
+      this.logger.debug(`Payment initiated successfully for registration: ${initiatePaymentDto.registrationId}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to initiate payment: ${error.message}`);
+      throw error;
+    }
   }
 
   @Post('verify')
@@ -50,10 +60,18 @@ export class PaymentController {
     description: 'Transaction not found'
   })
   async verifyPayment(@Body() verifyPaymentDto: VerifyPaymentDto) {
-    return this.paymentService.handlePaymentCallback(
-      verifyPaymentDto.transactionId,
-      verifyPaymentDto.status,
-      verifyPaymentDto.validationId,
-    );
+    try {
+      this.logger.log(`Verifying payment for transaction: ${verifyPaymentDto.transactionId}`);
+      const result = await this.paymentService.handlePaymentCallback(
+        verifyPaymentDto.transactionId,
+        verifyPaymentDto.status,
+        verifyPaymentDto.validationId,
+      );
+      this.logger.debug(`Payment verification completed for transaction: ${verifyPaymentDto.transactionId}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Payment verification failed: ${error.message}`);
+      throw error;
+    }
   }
 } 
