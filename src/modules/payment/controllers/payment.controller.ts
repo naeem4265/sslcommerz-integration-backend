@@ -1,9 +1,10 @@
-import { Controller, Post, Body, HttpStatus, Logger, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Post, Get, Res, Query, Body, HttpStatus, Logger, InternalServerErrorException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PaymentService } from '../services/payment.service';
 import { InitiatePaymentDto } from '../dtos/initiate-payment.dto';
 import { VerifyPaymentDto } from '../dtos/verify-payment.dto';
 import { PaymentTransactionResponseDto } from '../dtos/payment-transaction-response.dto';
+import { Response } from 'express';
 
 @ApiTags('payment')
 @Controller('payment')
@@ -72,6 +73,35 @@ export class PaymentController {
     } catch (error) {
       this.logger.error(`Payment verification failed: ${error.message}`);
       throw error;
+    }
+  }
+
+  @Post('success')
+  @ApiOperation({
+    summary: 'SSLCommerz success redirect',
+    description: 'Handles SSLCommerz success callback from gateway and redirects to frontend',
+  })
+  @ApiResponse({
+    status: HttpStatus.SEE_OTHER,
+    description: 'Redirected to frontend success page',
+  })
+  async handleSslSuccess(
+    @Query('tran_id') transactionId: string,
+    @Query('val_id') validationId: string,
+    @Query('status') status: string,
+    @Res() res: Response, // ✅ Express Response
+  ) {
+    try {
+      this.logger.log(`SSLCommerz success callback for transaction: ${transactionId}`);
+
+      await this.paymentService.handlePaymentCallback(transactionId, status, validationId);
+
+      const redirectUrl = `http://localhost:3030/payment/success?status=success&transactionId=${transactionId}`;
+      return res.redirect(HttpStatus.SEE_OTHER, redirectUrl);
+    } catch (error) {
+      this.logger.error(`Payment verification failed: ${error.message}`);
+      const errorUrl = `http://localhost:3030/payment/failure?status=failed&error=${encodeURIComponent(error.message)}`;
+      return res.redirect(HttpStatus.SEE_OTHER, errorUrl);
     }
   }
 } 

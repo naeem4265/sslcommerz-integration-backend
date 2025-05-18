@@ -21,26 +21,19 @@ export class CreateRegistrationDto {
   email: string;
 
   @ApiProperty({
-    description: 'Phone number (BD format)',
-    example: '01712345678',
-    pattern: '^01[3-9]\\d{8}$'
+    description: 'Phone number',
+    example: '+8801712345678', 
   })
   @IsString()
   @IsNotEmpty()
-  @Matches(/^01[3-9]\d{8}$/, {
-    message: 'Phone number must be a valid Bangladeshi number'
-  })
   phone: string;
 
   @ApiProperty({
     description: 'Batch/Year of study',
     example: '2018',
-    minLength: 4,
-    maxLength: 4
   })
   @IsString()
   @IsNotEmpty()
-  @Length(4, 4)
   batch: string;
 
   @ApiProperty({

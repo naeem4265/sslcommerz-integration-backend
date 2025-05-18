@@ -32,7 +32,6 @@ export class PaymentService {
         amount
       );
 
-      console.log('transaction----------------------->', transaction);
       // Initialize SSLCommerz payment
       const paymentUrl = await this.sslcommerzService.initiatePayment(
         registration,
