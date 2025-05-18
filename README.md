@@ -1,102 +1,114 @@
 # Alumni Get Together Backend
 
-Backend service for Alumni Get Together registration system.
+Backend service for the Alumni Get Together registration system built with NestJS, TypeORM, and SSLCommerz for payment integration.
 
-## Security
+---
 
-**IMPORTANT**: This application uses JWT for authentication and requires secret keys that should never be committed to the repository.
+## 🔐 Security
 
-1. Copy `.env.example` to `.env`
-2. Update the `.env` file with strong, random values for:
-   - JWT_SECRET
-   - ADMIN_SECRET_KEY
-   - Database passwords
-   - Payment gateway credentials
+**IMPORTANT:** This project uses **JWT authentication**, **admin secret keys**, and **payment gateway credentials**. These should **never be committed** into version control.
 
-Example of generating a strong random key:
+### 1. Setup Environment Variables
+
+1. Copy `.env.example` → `.env`
+2. Update the `.env` file with **secure values**:
+
 ```bash
+# Generate a secure JWT or admin key:
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-## Features
+---
 
-- Alumni registration system
-- Payment integration (Bkash, Nagad, Rocket, DBBL)
-- Admin dashboard for registration management
-- Swagger API documentation
+## 🚀 Features
 
-## Prerequisites
+- Alumni registration with department, batch, designation, etc.
+- Integrated payment workflow via **SSLCommerz**
+- Admin dashboard with statistics and paginated records
+- RESTful API with complete Swagger docs
+- Payment status callback handling from SSLCommerz
 
-- Node.js (v14 or higher)
-- MongoDB
+---
+
+## ⚙️ Prerequisites
+
+- Node.js (v18+ recommended)
+- PostgreSQL or MongoDB (depending on setup)
 - npm or yarn
+- SSLCommerz sandbox credentials
 
-## Installation
+---
 
-1. Clone the repository:
+## 📦 Installation
+
 ```bash
-git clone <repository-url>
-cd Backend
-```
-
-2. Install dependencies:
-```bash
+git clone git@naeem4265:naeem4265/sslcommerz-integration-backend.git
+cd sslcommerz-integration-backend
 npm install
 ```
 
-3. Create a `.env` file in the root directory with the following variables:
+---
+
+## 🛠️ Environment Config Example
+
 ```env
-MONGODB_URI=mongodb://localhost:27017/thpi-get-together
 PORT=3000
+
+# JWT
+JWT_SECRET=your_jwt_secret
+ADMIN_SECRET_KEY=your_admin_secret
+
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=your_password
+DB_NAME=alumni
+
+# SSLCommerz
+SSLCOMMERZ_STORE_ID=your_store_id
+SSLCOMMERZ_STORE_PASSWORD=your_password
+SSLCOMMERZ_SUCCESS_URL=https://yourdomain.com/api/v1/payment/success
+SSLCOMMERZ_FAIL_URL=https://yourdomain.com/api/v1/payment/fail
+SSLCOMMERZ_CANCEL_URL=https://yourdomain.com/api/v1/payment/cancel
 ```
 
-## Running the Application
+---
 
-1. Start the development server:
+## ▶️ Running the App
+
 ```bash
 npm run start:dev
 ```
 
-2. Access the Swagger API documentation at:
-```
-http://localhost:3000/api
-```
+Visit: [http://localhost:3000/api/v1/swagger](http://localhost:3000/api/v1/swagger)
 
-## API Endpoints
+---
 
-### Registration
+## 📚 API Endpoints
 
-- `POST /registration` - Create a new registration
-- `GET /registration` - Get all registrations
-- `GET /registration/:id` - Get a specific registration
-- `POST /registration/:id/payment` - Update payment status
+### 🔵 Registration
 
-### Payment
+| Method | Endpoint                     | Description                        |
+|--------|------------------------------|------------------------------------|
+| POST   | `/registration`              | Create a new registration          |
+| GET    | `/registration`              | List all registrations (admin)     |
+| GET    | `/registration/:id`          | Get a single registration          |
+| POST   | `/registration/:id/payment`  | Update payment status manually     |
 
-- `POST /payment/initiate` - Initiate a payment
-- `POST /payment/verify` - Verify a payment
+### 🟢 Payment
 
-## Payment Methods
+| Method | Endpoint                  | Description                                  |
+|--------|---------------------------|----------------------------------------------|
+| POST   | `/payment/initiate`       | Starts a payment via SSLCommerz             |
+| POST   | `/payment/verify`         | Called internally to verify a payment        |
+| GET    | `/payment/success`        | SSLCommerz success redirect callback (GET)   |
+| POST   | `/payment/success`        | SSLCommerz success form callback (POST)      |
+| POST   | `/payment/ipn`            | IPN verification from SSLCommerz             |
 
-The system supports the following payment methods:
-- Bkash
-- Nagad
-- Rocket
-- Dutch-Bangla Bank (DBBL)
+---
 
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Database Migrations
+## 🧪 Migrations
 
 ```bash
 # generate migration
@@ -109,6 +121,8 @@ npm run migration:run
 npm run migration:revert
 ```
 
-## API Documentation
+---
 
-The API documentation is available at `/api/v1/swagger` when the application is running. 
+## 🧾 License
+
+This project is licensed under the **MIT License**.
